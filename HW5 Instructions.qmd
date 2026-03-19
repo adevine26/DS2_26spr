@@ -1,0 +1,156 @@
+---
+title: "HW5"
+subtitle: "Data Science 2"
+author: "Amélie Devine"
+editor: visual
+format: pdf
+  # html:
+  #   embed-resources: true
+  #   code-fold: true  # new
+execute:
+  echo: true
+  message: false
+  warning: false
+---
+
+# The Office
+
+Let's return to *The Office* and the question of how many times they said "that's what she said". Now we can use n-grams to help us with the searching. Recall that the text is in the [schrute](https://cran.r-project.org/web/packages/schrute/index.html) package on CRAN.
+
+Do the following: (please label each section with the same number as listed here)
+
+```{r setup}
+library(tidyverse)
+library(schrute)
+library(tidytext)
+```
+
+1.  Count the number of [lines]{.underline} in which "that's what she said" is said in *The Office* (yes, we discussed this previously)
+
+```{r}
+office_clean <- theoffice %>%
+  mutate(text_clean = str_to_lower(text),
+         text_clean = str_replace_all(text_clean, "[^a-z\\s]", "")) 
+
+twss_count <- office_clean %>%
+  filter(str_detect(text_clean, "thats what she said"))
+
+nrow(twss_count)
+```
+
+2.  Confirm that you get the same result when using `ngram4`, a variable which is an ngram of size 4 (4 words at a time).
+```{r}
+ngram4 <- office_clean %>%
+  unnest_tokens(ngram, text_clean, token = "ngrams", n = 4)
+
+twss_ngram4 <- ngram4 %>%
+  filter(ngram == "thats what she said") %>%
+  distinct(index) 
+
+nrow(twss_ngram4)
+```
+
+3.  Explore whether "that's what she" included in `ngram4` allows you to determine any additional phrases that should be included.
+
+```{r}
+tws_start <- ngram4 %>%
+  filter(str_detect(str_to_lower(ngram), "^thats what she")) %>%
+  distinct(ngram)
+
+tws_start
+
+tws_start <- office_clean %>%
+  filter(str_detect(text_clean, "thats what she sai") &
+           !str_detect(text_clean, "thats what she said"))
+```
+This tells me that "thats what she sai" should probably be included. 
+
+4.  Explore whether "what she said" included in `ngram4` allows you to determine any additional phrases that should be included.
+
+```{r}
+wss_end <- ngram4 %>%
+  filter(str_detect(str_to_lower(ngram), "what she said$")) %>%
+  distinct(ngram)
+
+wss_end
+```
+There are no extra phrases here. 
+
+5.  Print all the [unique]{.underline} lines that contain the words "that", "what", "she" and "said", but do NOT contain the string "that's what she said". Decide whether any of these lines should be included as saying "that's what she said".
+
+```{r}
+unique_lines <- office_clean %>%
+  filter(str_detect(text_clean, "that") &
+         str_detect(text_clean, "what") &
+         str_detect(text_clean, "she") &
+         str_detect(text_clean, "said") &
+         !str_detect(text_clean, "that'?s what she said")) %>%
+  distinct(text)
+
+unique_lines
+```
+
+None of these should be included as saying "that's what she said".
+
+6.  Create a frequency distribution of X, where X is determined from the third word in "that's what X said".
+
+```{r}
+third_word <- office_clean %>%
+  filter(str_detect(text_clean, "that'?s what \\w+ said")) %>%
+  mutate(x_word = str_extract(text_clean, "that'?s what (\\w+) said")) %>%
+  mutate(x_word = str_replace(x_word, "that'?s what ", ""),
+         x_word = str_replace(x_word, " said", "")) %>%
+  count(x_word, sort = TRUE)
+
+ggplot(third_word, aes(x = reorder(x_word, -n), y = n)) +
+  geom_col(fill = "skyblue") +
+  labs(
+    title = "Frequency Distribution of 'That's what ___ said'",
+    x = "Third Word",
+    y = "Number of Appearances") +
+  theme_minimal()
+
+twss_third_word <- office_clean %>% 
+  filter(str_detect(text_clean, "thats what he said"))
+```
+
+7.  Add a categorical variable to the *original* data that takes a value that equals 0 if it was not identified in your work above, 1 if the line says "that's what she said", otherwise it should say 3 if you identified it from starting with "that's what she", otherwise it should say 4 if you identified it from ending with "what she said", otherwise if should say 5 if you identified it in part 5, otherwise it should say 6 if you identified it in part 6. In part 6, you are welcome to make a judgment call about which third words you want to count as similar to "that's what she said" (but you should clearly state which ones you have chosen).
+
+```{r}
+similar_words = c("he")
+
+office_labeled <- office_clean %>%
+  mutate(category =
+           case_when(
+             index %in% twss_count$index ~ 1,
+             index %in% tws_start$index ~ 3,
+             index %in% twss_third_word$index ~ 6,
+             TRUE ~ 0
+           ))
+
+```
+I only chose 'he' as a similar word, since that is the closest to the true meaning of 'that's what she said'. 
+
+8.  Create a frequency distribution of the new variable you created in part 7.
+```{r}
+ggplot(office_labeled, aes(x = category)) +
+  geom_histogram(fill = "skyblue") +
+  labs(
+    title = "Frequency Distribution of 'That's what she said' ID Variable",
+    x = "ID Variable",
+    y = "Number of Appearances") +
+  scale_x_continuous(breaks = seq(0, 6, by = 1)) +
+  theme_minimal()
+
+office_labeled %>% 
+  filter(category != 0) %>% 
+  ggplot(aes(x = category)) +
+  geom_histogram(fill = "skyblue", binwidth = 1) +
+  labs(
+    title = "Frequency Distribution of 'That's what she said' ID Variable",
+    subtitle = "Not including unidentified lines",
+    x = "ID Variable",
+    y = "Number of Appearances") +
+  scale_x_continuous(breaks = seq(1, 6, by = 1)) +
+  theme_minimal()
+```
