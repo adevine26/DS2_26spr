@@ -39,6 +39,7 @@ nrow(twss_count)
 ```
 
 2.  Confirm that you get the same result when using `ngram4`, a variable which is an ngram of size 4 (4 words at a time).
+
 ```{r}
 ngram4 <- office_clean %>%
   unnest_tokens(ngram, text_clean, token = "ngrams", n = 4)
@@ -63,7 +64,8 @@ tws_start <- office_clean %>%
   filter(str_detect(text_clean, "thats what she sai") &
            !str_detect(text_clean, "thats what she said"))
 ```
-This tells me that "thats what she sai" should probably be included. 
+
+This tells me that "thats what she sai" should probably be included.
 
 4.  Explore whether "what she said" included in `ngram4` allows you to determine any additional phrases that should be included.
 
@@ -74,7 +76,8 @@ wss_end <- ngram4 %>%
 
 wss_end
 ```
-There are no extra phrases here. 
+
+There are no extra phrases here.
 
 5.  Print all the [unique]{.underline} lines that contain the words "that", "what", "she" and "said", but do NOT contain the string "that's what she said". Decide whether any of these lines should be included as saying "that's what she said".
 
@@ -129,9 +132,11 @@ office_labeled <- office_clean %>%
            ))
 
 ```
-I only chose 'he' as a similar word, since that is the closest to the true meaning of 'that's what she said'. 
+
+I only chose 'he' as a similar word, since that is the closest to the true meaning of 'that's what she said'.
 
 8.  Create a frequency distribution of the new variable you created in part 7.
+
 ```{r}
 ggplot(office_labeled, aes(x = category)) +
   geom_histogram(fill = "skyblue") +
