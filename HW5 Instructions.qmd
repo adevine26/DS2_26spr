@@ -38,6 +38,8 @@ twss_count <- office_clean %>%
 nrow(twss_count)
 ```
 
+**NG comment:** I think it was really smart to strip punctuation from the code, so then you did not ever have to worry about apostrophes within the quote that could alter findings.
+
 2.  Confirm that you get the same result when using `ngram4`, a variable which is an ngram of size 4 (4 words at a time).
 
 ```{r}
@@ -66,6 +68,8 @@ tws_start <- office_clean %>%
 ```
 
 This tells me that "thats what she sai" should probably be included.
+
+**NG comment:** I think this is a really good find, but in context of the line itself I probably would choose not to include "thats what she sai". In this context it was used by Michael as a joke that he was about to say it fully but backed out and said it did not apply to that situation, so this application of the iconic quote differs from the rest.
 
 4.  Explore whether "what she said" included in `ngram4` allows you to determine any additional phrases that should be included.
 
@@ -134,6 +138,8 @@ office_labeled <- office_clean %>%
 ```
 
 I only chose 'he' as a similar word, since that is the closest to the true meaning of 'that's what she said'.
+
+**NG comment:** Since you are adding a categorical variable to the original data, that should mean the 7 findings from part 5 are included, since those lines are not filtered out in the original data.
 
 8.  Create a frequency distribution of the new variable you created in part 7.
 
