@@ -62,9 +62,9 @@ tws_start <- ngram4 %>%
 
 tws_start
 
-tws_start <- office_clean %>%
-  filter(str_detect(text_clean, "thats what she sai") &
-           !str_detect(text_clean, "thats what she said"))
+# tws_start <- office_clean %>%
+#   filter(str_detect(text_clean, "thats what she sai") &
+#            !str_detect(text_clean, "thats what she said"))
 ```
 
 This tells me that "thats what she sai" should probably be included.
@@ -130,7 +130,7 @@ office_labeled <- office_clean %>%
   mutate(category =
            case_when(
              index %in% twss_count$index ~ 1,
-             index %in% tws_start$index ~ 3,
+             # index %in% tws_start$index ~ 3,
              index %in% twss_third_word$index ~ 6,
              TRUE ~ 0
            ))
